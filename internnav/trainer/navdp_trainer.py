@@ -77,6 +77,7 @@ class NavDPTrainer(BaseTrainer):
         batch_label_critic = inputs["batch_label_critic"]
         batch_augment_critic = inputs["batch_augment_critic"]
 
+        # 在这里调用了原始模型。
         pred_ng, pred_mg, critic_pred, augment_pred, noise, aux_pred = model(
             inputs_on_device["batch_pg"],
             inputs_on_device["batch_ig"],

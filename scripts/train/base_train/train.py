@@ -164,6 +164,8 @@ def main(config, model_class, model_config_class):
 
         # ------------ load dataset ------------
         if config.model_name == "navdp":
+            #这里定义了数据集的位置
+            print("现在开始加载数据集")
             train_dataset_data = NavDP_Base_Datset(
                 config.il.root_dir,
                 config.il.dataset_navdp,
@@ -217,7 +219,6 @@ def main(config, model_class, model_config_class):
             policy_trainer = NavDPTrainer
             train_dataset = train_dataset_data
             collate_fn = navdp_collate_fn
-
         # ------------ training args ------------
         training_args = TrainingArguments(
             output_dir=config.output_dir,

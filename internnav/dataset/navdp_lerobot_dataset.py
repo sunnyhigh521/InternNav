@@ -46,6 +46,7 @@ class NavDP_Base_Datset(Dataset):
         preload=False,
         random_digit=False,
         prior_sample=False,
+        expand_scale = 5
     ):
 
         self.dataset_dirs = np.array([p for p in os.listdir(root_dirs)])
@@ -86,6 +87,7 @@ class NavDP_Base_Datset(Dataset):
                         data_path = os.path.join(
                             entire_task_dir, 'data/chunk-000/episode_000000.parquet'
                         )  # intrinsic, extrinsic, cam_traj, path
+                        # 路径的几何文件
                         afford_path = os.path.join(entire_task_dir, 'data/chunk-000/path.ply')
                         rgbs_length = len([p for p in os.listdir(rgb_dir)])
                         depths_length = len([p for p in os.listdir(depth_dir)])
@@ -99,11 +101,11 @@ class NavDP_Base_Datset(Dataset):
                             depths_path.append(os.path.join(depth_dir, "%d.png" % i))
                         if os.path.exists(data_path) is False:
                             continue
-                        self.trajectory_dirs.append(entire_task_dir)
-                        self.trajectory_data_dir.append(data_path)
+                        self.trajectory_dirs.append(entire_task_dir) # 把所有的轨迹收集起来
+                        self.trajectory_data_dir.append(data_path) # 把所有的结构化文件收集起来。
                         self.trajectory_rgb_path.append(rgbs_path)
                         self.trajectory_depth_path.append(depths_path)
-                        self.trajectory_afford_path.append(afford_path)
+                        self.trajectory_afford_path.append(afford_path) # 所有的路径几何文件
 
             save_dict = {
                 'trajectory_dirs': self.trajectory_dirs,
@@ -112,15 +114,18 @@ class NavDP_Base_Datset(Dataset):
                 'trajectory_depth_path': self.trajectory_depth_path,
                 'trajectory_afford_path': self.trajectory_afford_path,
             }
-            with open(preload_path, 'w') as f:
-                json.dump(save_dict, f, indent=4)
+            if preload is False and preload_path:
+                os.makedirs(os.path.dirname(preload_path), exist_ok=True)
+                with open(preload_path, 'w') as f:
+                    json.dump(save_dict, f, indent=4)
+
         else:
             load_dict = json.load(open(preload_path, 'r'))
-            self.trajectory_dirs = load_dict['trajectory_dirs'] * 50
-            self.trajectory_data_dir = load_dict['trajectory_data_dir'] * 50
-            self.trajectory_rgb_path = load_dict['trajectory_rgb_path'] * 50
-            self.trajectory_depth_path = load_dict['trajectory_depth_path'] * 50
-            self.trajectory_afford_path = load_dict['trajectory_afford_path'] * 50
+            self.trajectory_dirs = load_dict['trajectory_dirs'] * expand_scale
+            self.trajectory_data_dir = load_dict['trajectory_data_dir'] * expand_scale
+            self.trajectory_rgb_path = load_dict['trajectory_rgb_path'] * expand_scale
+            self.trajectory_depth_path = load_dict['trajectory_depth_path'] * expand_scale
+            self.trajectory_afford_path = load_dict['trajectory_afford_path'] * expand_scale
 
     def __len__(self):
         return len(self.trajectory_dirs)
@@ -572,6 +577,7 @@ def navdp_collate_fn(batch):
 
 if __name__ == "__main__":
     os.makedirs("./navdp_dataset_test/", exist_ok=True)
+    # 在这里加载的数据及
     dataset = NavDP_Base_Datset(
         "/shared/smartbot_new/liuyu/vln-n1-minival/",
         "./navdp_dataset_test/dataset_lerobot.json",
